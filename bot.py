@@ -1,43 +1,34 @@
 import tweepy
-import openai
 import os
+import time
 
-# API Keys - Secrets'ten gelecek
-TW_API_KEY = os.getenv('TW_API_KEY')
-TW_API_SECRET = os.getenv('TW_API_SECRET')
-TW_ACCESS_TOKEN = os.getenv('TW_ACCESS_TOKEN')
-TW_ACCESS_SECRET = os.getenv('TW_ACCESS_SECRET')
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+# 1. API anahtarlarını kontrol et (debug)
+print("=== API ANAHTARLARI KONTROLÜ ===")
+print(f"TWITTER_API_KEY: {'VAR' if os.environ.get('TWITTER_API_KEY') else 'YOK!'}")
+print(f"TWITTER_ACCESS_TOKEN: {'VAR' if os.environ.get('TWITTER_ACCESS_TOKEN') else 'YOK!'}")
+print(f"OPENAI_API_KEY: {'VAR' if os.environ.get('OPENAI_API_KEY') else 'YOK!'}")
 
-# Twitter Client
-client = tweepy.Client(
-    consumer_key=TW_API_KEY,
-    consumer_secret=TW_API_SECRET,
-    access_token=TW_ACCESS_TOKEN,
-    access_token_secret=TW_ACCESS_SECRET
-)
-
-openai.api_key = OPENAI_API_KEY
-
-def generate_tweet():
-    prompt = """
-    Write a short tweet about trending crypto news or common trading mistakes.
-    Include a casual call-to-action like 'Support my caffeine addiction' and link to buymeacoffee.com/newsdigestx
-    Max 280 chars, informal tone.
-    """
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}]
+try:
+    # 2. Twitter bağlantısı kur
+    print("\n=== TWITTER BAĞLANTISI KURULUYOR ===")
+    client = tweepy.Client(
+        bearer_token=os.environ.get('TWITTER_BEARER_TOKEN'),
+        consumer_key=os.environ.get('TWITTER_API_KEY'),
+        consumer_secret=os.environ.get('TWITTER_API_SECRET'),
+        access_token=os.environ.get('TWITTER_ACCESS_TOKEN'),
+        access_token_secret=os.environ.get('TWITTER_ACCESS_TOKEN_SECRET')
     )
-    return response.choices[0].message.content
+    print("✅ Bağlantı kuruldu")
 
-def tweet():
-    try:
-        text = generate_tweet()
-        client.create_tweet(text=text)
-        print(f"Tweeted: {text}")
-    except Exception as e:
-        print(f"Error: {e}")
+    # 3. Zorla tweet at
+    print("\n=== TWEET ATILIYOR ===")
+    tweet_text = f"🤖 TEST {time.strftime('%H:%M:%S')}: Bot çalışıyor!"
+    response = client.create_tweet(text=tweet_text)
+    print(f"✅ TWEET BAŞARILI! ID: {response.data['id']}")
+    print(f"Tweet metni: {tweet_text}")
 
-if __name__ == "__main__":
-    tweet()
+except Exception as e:
+    print(f"\n❌ HATA: {e}")
+    print(f"Hata tipi: {type(e).__name__}")
+
+print("\n=== BOT BİTTİ ===")
